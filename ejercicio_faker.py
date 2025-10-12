@@ -130,6 +130,9 @@ def poblar_estudiantes(cursor, carrera_ids):
     
     lote_size = 1000
     total_insertados = 0
+    # Inicia la barra de progreso con tqdm
+    # total: El numero total de elementos a procesar (para calcular el 100%)
+    # desc: Una descripcion que se muestra junto a la barra
     with tqdm(total=NUM_ESTUDIANTES, desc="Poblando 'estudiante'") as pbar:
         for i in range(1, NUM_ESTUDIANTES + 1, lote_size):
             estudiantes_lote = []
@@ -149,6 +152,7 @@ def poblar_estudiantes(cursor, carrera_ids):
             
             cursor.executemany(query, estudiantes_lote)
             total_insertados += cursor.rowcount
+            # Actualiza la barra de progreso, indicando cuantos elementos se procesaron en este lote
             pbar.update(len(estudiantes_lote))
 
     print(f"-> {total_insertados} registros insertados en 'estudiante'.\n")
@@ -174,6 +178,9 @@ def poblar_matriculas(cursor, estudiante_ids, curso_ids):
     matricula_ids = []
     lote_size = 5000
     total_insertados = 0
+    # Inicia la barra de progreso con tqdm
+    # total: El numero total de elementos a procesar (para calcular el 100%)
+    # desc: Una descripcion que se muestra junto a la barra
     with tqdm(total=NUM_MATRICULAS, desc="Poblando 'matricula'") as pbar:
         for i in range(1, NUM_MATRICULAS + 1, lote_size):
             matriculas_lote = []
@@ -187,6 +194,7 @@ def poblar_matriculas(cursor, estudiante_ids, curso_ids):
             
             cursor.executemany(query, matriculas_lote)
             total_insertados += cursor.rowcount
+            # Actualiza la barra de progreso, indicando cuantos elementos se procesaron en este lote
             pbar.update(len(matriculas_lote))
 
     print(f"-> {total_insertados} registros insertados en 'matricula'.\n")
@@ -197,6 +205,9 @@ def poblar_evaluaciones(cursor, matricula_ids):
     nombres_evaluacion = ['Prueba 1', 'Prueba 2', 'Examen', 'Informe', 'Presentación']
     lote_size = 10000
     total_insertados = 0
+    # Inicia la barra de progreso con tqdm.
+    # total: El numero total de elementos a procesar (para calcular el 100%)
+    # desc: Una descripcion que se muestra junto a la barra.
     with tqdm(total=NUM_EVALUACIONES, desc="Poblando 'evaluacion'") as pbar:
         for i in range(1, NUM_EVALUACIONES + 1, lote_size):
             evaluaciones_lote = []
@@ -207,6 +218,7 @@ def poblar_evaluaciones(cursor, matricula_ids):
                 evaluaciones_lote.append((j, id_matricula, random.choice(nombres_evaluacion), nota, fecha))
             cursor.executemany(query, evaluaciones_lote)
             total_insertados += cursor.rowcount
+            # Actualizar la barra de progreso, indicando cuantos elementos se procesaron en este lote
             pbar.update(len(evaluaciones_lote))
     print(f"-> {total_insertados} registros insertados en 'evaluacion'.\n")
     
@@ -223,7 +235,7 @@ def main():
         # Desactivar temporalmente las claves foráneas para acelerar la inserción
         cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
         
-        # --- Ejecutar funciones en orden de dependencia ---
+        # Ejecutar funciones en orden de dependencia
         instituto_ids = poblar_institutos(cursor)
         carrera_ids = poblar_carreras(cursor, instituto_ids)
         docente_ids = poblar_docentes(cursor)
