@@ -123,25 +123,34 @@ def poblar_asignaturas(cursor, carrera_ids):
 
 def poblar_estudiantes(cursor, carrera_ids):
     print("Poblando tabla 'estudiante'...")
-    estudiantes = []
+    estudiantes_ids = []
     ruts_usados = set()
-    for i in range(1, NUM_ESTUDIANTES + 1):
-        while True:
-            rut = generar_rut()
-            if rut not in ruts_usados:
-                ruts_usados.add(rut)
-                break
-        estudiantes.append((
-            i, rut, fake.first_name(), fake.last_name(), 
-            fake.date_of_birth(minimum_age=18, maximum_age=40),
-            random.choice(['Masculino', 'Femenino', 'Otro']),
-            fake.address(), fake.phone_number(), random.choice(carrera_ids)
-        ))
-        
     query = "INSERT INTO estudiante (id_estudiante, rut, nombre, apellido, fecha_nacimiento, genero, direccion, telefono, id_carrera) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
-    cursor.executemany(query, estudiantes)
-    print(f"-> {cursor.rowcount} registros insertados en 'estudiante'.")
-    return [e[0] for e in estudiantes]
+    
+    lote_size = 1000
+    total_insertados = 0
+    for i in range(1, NUM_ESTUDIANTES + 1, lote_size):
+        estudiantes_lote = []
+        for j in range(i, min(i + lote_size, NUM_ESTUDIANTES + 1)):
+            while True:
+                rut = generar_rut()
+                if rut not in ruts_usados:
+                    ruts_usados.add(rut)
+                    break
+            estudiantes_lote.append((
+                j, rut, fake.first_name(), fake.last_name(), 
+                fake.date_of_birth(minimum_age=18, maximum_age=40),
+                random.choice(['Masculino', 'Femenino', 'Otro']),
+                fake.address(), fake.phone_number(), random.choice(carrera_ids)
+            ))
+            estudiantes_ids.append(j)
+        
+        cursor.executemany(query, estudiantes_lote)
+        total_insertados += cursor.rowcount
+        print(f"  -> Lote insertado. Total hasta ahora: {total_insertados} registros.")
+
+    print(f"-> {total_insertados} registros insertados en 'estudiante'.")
+    return estudiantes_ids
 
 def poblar_cursos(cursor, asignatura_ids, docente_ids):
     print("Poblando tabla 'curso'...")
@@ -160,32 +169,44 @@ def poblar_cursos(cursor, asignatura_ids, docente_ids):
 
 def poblar_matriculas(cursor, estudiante_ids, curso_ids):
     print("Poblando tabla 'matricula'...")
-    matriculas = []
-    for i in range(1, NUM_MATRICULAS + 1):
-        id_estudiante = random.choice(estudiante_ids)
-        id_curso = random.choice(curso_ids)
-        fecha = fake.date_between(start_date='-2y', end_date='today')
-        estado = random.choice(['Activo', 'Aprobado', 'Reprobado', 'Retirado'])
-        matriculas.append((i, id_estudiante, id_curso, fecha, estado))
-        
     query = "INSERT INTO matricula (id_matricula, id_estudiante, id_curso, fecha_matricula, estado) VALUES (%s, %s, %s, %s, %s)"
-    cursor.executemany(query, matriculas)
-    print(f"-> {cursor.rowcount} registros insertados en 'matricula'.")
-    return [m[0] for m in matriculas]
+    matricula_ids = []
+    lote_size = 5000
+    total_insertados = 0
+    for i in range(1, NUM_MATRICULAS + 1, lote_size):
+        matriculas_lote = []
+        for j in range(i, min(i + lote_size, NUM_MATRICULAS + 1)):
+            id_estudiante = random.choice(estudiante_ids)
+            id_curso = random.choice(curso_ids)
+            fecha = fake.date_between(start_date='-2y', end_date='today')
+            estado = random.choice(['Activo', 'Aprobado', 'Reprobado', 'Retirado'])
+            matriculas_lote.append((j, id_estudiante, id_curso, fecha, estado))
+            matricula_ids.append(j)
+        
+        cursor.executemany(query, matriculas_lote)
+        total_insertados += cursor.rowcount
+        print(f"  -> Lote insertado. Total hasta ahora: {total_insertados} registros.")
+
+    print(f"-> {total_insertados} registros insertados en 'matricula'.")
+    return matricula_ids
 
 def poblar_evaluaciones(cursor, matricula_ids):
     print(f"Poblando tabla 'evaluacion' con {NUM_EVALUACIONES} registros...")
-    evaluaciones = []
-    nombres_evaluacion = ['Prueba 1', 'Prueba 2', 'Examen', 'Informe', 'Presentación']
-    for i in range(1, NUM_EVALUACIONES + 1):
-        id_matricula = random.choice(matricula_ids)
-        nota = round(random.uniform(1.0, 7.0), 1)
-        fecha = fake.date_between(start_date='-1y', end_date='today')
-        evaluaciones.append((i, id_matricula, random.choice(nombres_evaluacion), nota, fecha))
-        
     query = "INSERT INTO evaluacion (id_evaluacion, id_matricula, nombre_evaluacion, nota, fecha_evaluacion) VALUES (%s, %s, %s, %s, %s)"
-    cursor.executemany(query, evaluaciones)
-    print(f"-> {cursor.rowcount} registros insertados en 'evaluacion'.")
+    nombres_evaluacion = ['Prueba 1', 'Prueba 2', 'Examen', 'Informe', 'Presentación']
+    lote_size = 10000
+    total_insertados = 0
+    for i in range(1, NUM_EVALUACIONES + 1, lote_size):
+        evaluaciones_lote = []
+        for j in range(i, min(i + lote_size, NUM_EVALUACIONES + 1)):
+            id_matricula = random.choice(matricula_ids)
+            nota = round(random.uniform(1.0, 7.0), 1)
+            fecha = fake.date_between(start_date='-1y', end_date='today')
+            evaluaciones_lote.append((j, id_matricula, random.choice(nombres_evaluacion), nota, fecha))
+        cursor.executemany(query, evaluaciones_lote)
+        total_insertados += cursor.rowcount
+        print(f"  -> Lote insertado. Total hasta ahora: {total_insertados} registros.")
+    print(f"-> {total_insertados} registros insertados en 'evaluacion'.")
     
 #* SCRIPT PRINCIPAL
 
