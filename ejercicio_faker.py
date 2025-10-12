@@ -74,7 +74,7 @@ def poblar_institutos(cursor):
     print(f"-> {cursor.rowcount} registros insertados en 'instituto'.")
     return [i[0] for i in institutos]
 
-def poblar_carreras(cursor):
+def poblar_carreras(cursor, instituto_ids):
     print("Poblando tabla 'carrera'...")
     carreras = []
     for i in range(1, NUM_CARRERAS + 1):
@@ -188,3 +188,48 @@ def poblar_evaluaciones(cursor, matricula_ids):
     print(f"-> {cursor.rowcount} registros insertados en 'evaluacion'.")
     
 #* SCRIPT PRINCIPAL
+
+def main():
+    start_time = time.time()
+    try:
+        print("Conectando a la base de datos...")
+        cnx = mysql.connector.connect(**db_config)
+        cursor = cnx.cursor()
+        print("Conexión exitosa.")
+
+        # Desactivar temporalmente las claves foráneas para acelerar la inserción
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
+        
+        # --- Ejecutar funciones en orden de dependencia ---
+        instituto_ids = poblar_institutos(cursor)
+        carrera_ids = poblar_carreras(cursor, instituto_ids)
+        docente_ids = poblar_docentes(cursor)
+        asignatura_ids = poblar_asignaturas(cursor, carrera_ids)
+        estudiante_ids = poblar_estudiantes(cursor, carrera_ids)
+        curso_ids = poblar_cursos(cursor, asignatura_ids, docente_ids)
+        matricula_ids = poblar_matriculas(cursor, estudiante_ids, curso_ids)
+        poblar_evaluaciones(cursor, matricula_ids)
+        
+        # Reactivar claves foráneas
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
+        
+        print("\nConfirmando transacción (commit)...")
+        cnx.commit()
+        print("¡Proceso completado con éxito!")
+
+    except mysql.connector.Error as err:
+        print(f"Error de base de datos: {err}")
+        if 'cnx' in locals() and cnx.is_connected():
+            print("Realizando rollback...")
+            cnx.rollback()
+    finally:
+        if 'cursor' in locals():
+            cursor.close()
+        if 'cnx' in locals() and cnx.is_connected():
+            cnx.close()
+            print("Conexión cerrada.")
+            
+    end_time = time.time()
+    print(f"\nTiempo total de ejecución: {end_time - start_time:.2f} segundos.")
+    
+main()
