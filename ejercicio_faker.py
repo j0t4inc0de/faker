@@ -62,5 +62,28 @@ def generar_rut():
 
 #? FUNCIONES DE GENERACIÓN E INSERCIÓN DE DATOS
 
+def poblar_institutos(cursor):
+    pass
 
+def poblar_carreras(cursor):
+    pass
+
+def poblar_docentes(cursor):
+    pass
+
+def poblar_asignaturas(cursor):
+    pass
+
+def poblar_estudiantes(cursor):
+    pass
+
+def poblar_cursos(cursor):
+    pass
+
+def poblar_matriculas(cursor):
+    pass
+
+def poblar_evaluaciones(cursor):
+    paass
+    
 #* SCRIPT PRINCIPAL
