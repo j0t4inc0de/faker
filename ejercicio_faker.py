@@ -37,9 +37,23 @@ fake = Faker('es_CL')
 #? FUNCIONES AUXILIARES
 
 # Calcular digito verificador del RUT chileno
-def calcular_dv(rut):
+def calcular_dv(rut_sin_dv):
+    reverso = str(rut_sin_dv)[::-1]
+    multiplicador = 2
+    suma = 0
+    for digito in reverso:
+        suma += int(digito) * multiplicador
+        multiplicador += 1
+        if multiplicador == 8:
+            multiplicador = 2
+    resto = suma % 11
+    dv = 11 - resto
+    if dv == 11:
+        return '0'
+    if dv == 10:
+        return 'K'
+    return str(dv)
     
-    pass
 # Genera rut validos y formateados
 def generar_rut():
     rut_base = random.randint(5000000, 25000000)
