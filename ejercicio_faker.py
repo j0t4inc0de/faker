@@ -3,6 +3,7 @@
     
     pip install Faker
     pip install mysql-connector-python
+    pip install tqdm
     
     j0t4InC0de
 """
@@ -11,8 +12,8 @@ from faker import Faker
 import random
 from datetime import datetime, timedelta
 import time
-
 from tqdm import tqdm
+
 #? HACER CONEXIÓN CON LA BASE DE DATOS
 db_config = {
     'host': 'localhost',
@@ -72,7 +73,7 @@ def poblar_institutos(cursor):
     
     query = "INSERT INTO instituto (id_instituto, nombre_instituto) VALUES (%s, %s)"
     cursor.executemany(query, institutos)
-    print(f"-> {cursor.rowcount} registros insertados en 'instituto'.")
+    print(f"-> {cursor.rowcount} registros insertados en 'instituto'.\n")
     return [i[0] for i in institutos]
 
 def poblar_carreras(cursor, instituto_ids):
@@ -86,7 +87,7 @@ def poblar_carreras(cursor, instituto_ids):
         
     query = "INSERT INTO carrera (id_carrera, nombre_carrera, duracion_anios, id_instituto) VALUES (%s, %s, %s, %s)"
     cursor.executemany(query, carreras)
-    print(f"-> {cursor.rowcount} registros insertados en 'carrera'.")
+    print(f"-> {cursor.rowcount} registros insertados en 'carrera'.\n")
     return [c[0] for c in carreras]
 
 def poblar_docentes(cursor):
@@ -106,7 +107,7 @@ def poblar_docentes(cursor):
         
     query = "INSERT INTO docente (id_docente, rut, nombre, apellido, especialidad, correo_institucional, telefono) VALUES (%s, %s, %s, %s, %s, %s, %s)"
     cursor.executemany(query, docentes)
-    print(f"-> {cursor.rowcount} registros insertados en 'docente'.")
+    print(f"-> {cursor.rowcount} registros insertados en 'docente'.\n")
     return [d[0] for d in docentes]
 
 def poblar_asignaturas(cursor, carrera_ids):
@@ -119,7 +120,7 @@ def poblar_asignaturas(cursor, carrera_ids):
         
     query = "INSERT INTO asignatura (id_asignatura, nombre_asignatura, id_carrera) VALUES (%s, %s, %s)"
     cursor.executemany(query, asignaturas)
-    print(f"-> {cursor.rowcount} registros insertados en 'asignatura'.")
+    print(f"-> {cursor.rowcount} registros insertados en 'asignatura'.\n")
     return [a[0] for a in asignaturas]
 
 def poblar_estudiantes(cursor, carrera_ids):
@@ -150,7 +151,7 @@ def poblar_estudiantes(cursor, carrera_ids):
             total_insertados += cursor.rowcount
             pbar.update(len(estudiantes_lote))
 
-    print(f"-> {total_insertados} registros insertados en 'estudiante'.")
+    print(f"-> {total_insertados} registros insertados en 'estudiante'.\n")
     return estudiantes_ids
 
 def poblar_cursos(cursor, asignatura_ids, docente_ids):
@@ -165,7 +166,7 @@ def poblar_cursos(cursor, asignatura_ids, docente_ids):
         
     query = "INSERT INTO curso (id_curso, id_asignatura, id_docente, semestre, anio) VALUES (%s, %s, %s, %s, %s)"
     cursor.executemany(query, cursos)
-    print(f"-> {cursor.rowcount} registros insertados en 'curso'.")
+    print(f"-> {cursor.rowcount} registros insertados en 'curso'.\n")
     return [c[0] for c in cursos]
 
 def poblar_matriculas(cursor, estudiante_ids, curso_ids):
@@ -188,7 +189,7 @@ def poblar_matriculas(cursor, estudiante_ids, curso_ids):
             total_insertados += cursor.rowcount
             pbar.update(len(matriculas_lote))
 
-    print(f"-> {total_insertados} registros insertados en 'matricula'.")
+    print(f"-> {total_insertados} registros insertados en 'matricula'.\n")
     return matricula_ids
 
 def poblar_evaluaciones(cursor, matricula_ids):
@@ -207,7 +208,7 @@ def poblar_evaluaciones(cursor, matricula_ids):
             cursor.executemany(query, evaluaciones_lote)
             total_insertados += cursor.rowcount
             pbar.update(len(evaluaciones_lote))
-    print(f"-> {total_insertados} registros insertados en 'evaluacion'.")
+    print(f"-> {total_insertados} registros insertados en 'evaluacion'.\n")
     
 #* SCRIPT PRINCIPAL
 
@@ -217,7 +218,7 @@ def main():
         print("Conectando a la base de datos...")
         cnx = mysql.connector.connect(**db_config)
         cursor = cnx.cursor()
-        print("Conexión exitosa.")
+        print("Conexión exitosa.\n")
 
         # Desactivar temporalmente las claves foráneas para acelerar la inserción
         cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
@@ -237,19 +238,19 @@ def main():
         
         print("\nConfirmando transacción (commit)...")
         cnx.commit()
-        print("¡Proceso completado con éxito!")
+        print("¡Proceso completado con éxito!\n")
 
     except mysql.connector.Error as err:
         print(f"Error de base de datos: {err}")
         if 'cnx' in locals() and cnx.is_connected():
-            print("Realizando rollback...")
+            print("Realizando rollback...\n")
             cnx.rollback()
     finally:
         if 'cursor' in locals():
             cursor.close()
         if 'cnx' in locals() and cnx.is_connected():
             cnx.close()
-            print("Conexión cerrada.")
+            print("Conexión cerrada.\n")
             
     end_time = time.time()
     print(f"\nTiempo total de ejecución: {end_time - start_time:.2f} segundos.")
