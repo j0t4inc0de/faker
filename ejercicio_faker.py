@@ -12,7 +12,7 @@ import random
 from datetime import datetime, timedelta
 import time
 
-#? HACER CONEXCION CON LA BASE DE DATOS
+#? HACER CONEXIÓN CON LA BASE DE DATOS
 db_config = {
     'host': 'localhost',
     'user': 'admin',
@@ -22,9 +22,31 @@ db_config = {
 print("Conectando a la base de datos...\n", db_config)
 
 #? CONFIGURACION DE LA GENERACIÓN DE DATOS
+NUM_INSTITUTOS = 10
+NUM_CARRERAS = 50
+NUM_DOCENTES = 200
+NUM_ASIGNATURAS = 500
+NUM_ESTUDIANTES = 10000
+NUM_CURSOS = 1000
+NUM_MATRICULAS = 100000
+NUM_EVALUACIONES = 1000000
+
+# Inicializar Faker
+fake = Faker('es_CL')
 
 #? FUNCIONES AUXILIARES
 
+# Calcular digito verificador del RUT chileno
+def calcular_dv(rut):
+    
+    pass
+# Genera rut validos y formateados
+def generar_rut():
+    rut_base = random.randint(5000000, 25000000)
+    verificador = calcular_dv(rut_base)
+    return  f"{rut_base}-{verificador}"
+
 #? FUNCIONES DE GENERACIÓN E INSERCIÓN DE DATOS
+
 
 #* SCRIPT PRINCIPAL
